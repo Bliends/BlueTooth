@@ -10,6 +10,7 @@
         android:id="@+id/mainbtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="버튼 클릭"/>
+        android:text="버튼 클릭"
+        />
 
 </android.support.constraint.ConstraintLayout>

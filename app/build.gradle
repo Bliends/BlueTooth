@@ -28,6 +28,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.anko:anko:0.10.3'
+    implementation 'com.akexorcist:bluetoothspp:1.0.0'
+
 }
 repositories {
     mavenCentral()

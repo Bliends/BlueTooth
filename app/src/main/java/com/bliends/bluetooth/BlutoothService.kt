@@ -2,33 +2,25 @@ package com.bliends.bluetooth
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothClass
 import android.content.Intent
 import android.os.Handler
 import android.util.Log
-import android.widget.Toast
-import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.graphics.ColorSpace.connect
-import android.os.Build
-import android.support.annotation.RequiresApi
+import android.widget.Toast
+import java.io.InputStream
+import java.net.URLEncoder
 
 
 class BlutoothService(activity: Activity, handler: Handler) {
     private val TAG: String = "BluetoothService"
 
-    private var adapter: BluetoothAdapter? = null
+    private var adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
     private var acitivity: Activity = activity
 
     private var handler: Handler = handler
 
-    init {
-        adapter = BluetoothAdapter.getDefaultAdapter()
-    }
 
     fun getDeviceState(): Boolean {
         return if (adapter == null) {
@@ -41,16 +33,33 @@ class BlutoothService(activity: Activity, handler: Handler) {
         }
     }
 
-    fun listDevice(){ // 찾은 디바이스를 리스트로 보여주기
+
+    // 블루투스 장치의 이름이 주어졌을때 해당 블루투스 장치 객체를 페어링 된 장치 목록에서 찾아내는 코드.
+    fun getDeviceFind(name: String): BluetoothDevice? {
+        // BluetoothDevice : 페어링 된 기기 목록을 얻어옴.
+        var selectedDevice: String = ""
+        var returndevice: BluetoothDevice? = null
         var pairedDevices = adapter!!.bondedDevices
-        if(pairedDevices.size > 0){ // 하나 이상 검색될 경우
-
-            for(device in pairedDevices){
-
-                Log.e(device.name,device.address)
+        // getBondedDevices 함수가 반환하는 페어링 된 기기 목록은 Set 형식이며,
+        // Set 형식에서는 n 번째 원소를 얻어오는 방법이 없으므로 주어진 이름과 비교해서 찾는다.
+        for (device in pairedDevices) {
+            // getName() : 단말기의 Bluetooth Adapter 이름을 반환
+            if (name == device.name) {
+                selectedDevice = device.name
+                returndevice = device
+                break
             }
         }
+
+        return if (selectedDevice == "") {
+            returndevice!!
+        }else if(selectedDevice != "") {
+            returndevice!!
+        }else{
+            null
+        }
     }
+
 
     fun enableBluetooth() {
         if (adapter!!.isEnabled) {
@@ -59,30 +68,4 @@ class BlutoothService(activity: Activity, handler: Handler) {
             acitivity.startActivityForResult(intent, 10)
         }
     }
-
-
-
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    fun getDeviceInfo(data : Intent) {
-//        // Get the device MAC address
-//        var address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS)
-//        // Get the BluetoothDevice object
-//        // BluetoothDevice device = btAdapter.getRemoteDevice(address);
-//        var device = adapter.getRemoteDevice(address);
-//        Log.d(TAG, "Get Device Info \n" + "address : " + address);
-////        connect(device)
-//    }
-
-
-//    internal var device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-
-
-    fun ensureDisoverle(){
-        if(adapter!!.scanMode != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE){
-            var disoverleintent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            disoverleintent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,100)
-            acitivity.startActivity(disoverleintent)
-        }
-    }
 }
-
