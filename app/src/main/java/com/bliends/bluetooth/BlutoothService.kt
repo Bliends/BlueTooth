@@ -61,11 +61,13 @@ class BlutoothService(activity: Activity, handler: Handler) {
     }
 
 
-    fun enableBluetooth() {
-        if (adapter!!.isEnabled) {
+    fun enableBluetooth() : String{
+        return if (adapter!!.isEnabled) {
+            "있음"
         } else {
             var intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             acitivity.startActivityForResult(intent, 10)
+            "없음"
         }
     }
 }
