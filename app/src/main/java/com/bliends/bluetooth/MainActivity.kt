@@ -1,6 +1,7 @@
 package com.bliends.bluetooth
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -21,10 +22,11 @@ import android.bluetooth.BluetoothAdapter
 import android.text.method.TextKeyListener.clear
 import android.app.ProgressDialog
 import android.bluetooth.BluetoothSocket
-import java.io.InputStream
+import android.speech.tts.TextToSpeech
 import java.net.URLEncoder
 import app.akexorcist.bluetotohspp.library.BluetoothSPP
 import app.akexorcist.bluetotohspp.library.BluetoothState
+import java.io.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -35,11 +37,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private var btService: BlutoothService? = null
-    var bt: BluetoothSPP? = BluetoothSPP(this)
+    var bt: BluetoothSPP = BluetoothSPP(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getPermission()
+//        BLIENDS
 
         var btn = findViewById<Button>(R.id.mainbtn)
 
@@ -49,22 +52,16 @@ class MainActivity : AppCompatActivity() {
 
 
         btn.onClick {
-            if (!bt!!.isBluetoothAvailable) {
-                toast("블루투스를 지원하지 않는 기기입니다.")
+            if (!bt.isBluetoothEnabled()) {
+                bt.enable();
             } else {
-                if(btService!!.enableBluetooth() == "있음"){
-                    blstart()
-                    Log.e("GKDL","ASDF")
-                }else{
-                    Log.e("GKDL","GKDL")
+                if (!bt.isServiceAvailable()) {
+                    bt.setupService()
+                    bt.startService(BluetoothState.DEVICE_OTHER)
+                    bt!!.autoConnect("BLIENDS")
                 }
-                toast("블루투스를 지원하는 기기입니다.")
             }
-        }
 
-        bt!!.setOnDataReceivedListener { data, message ->
-            Log.e("test","test")
-            Log.e(data.toString(),message)
         }
 
 
@@ -83,36 +80,63 @@ class MainActivity : AppCompatActivity() {
                 toast("기기와 연걸이 실패하였습니다.")
             }
         })
+
+        bt.setOnDataReceivedListener(object : BluetoothSPP.OnDataReceivedListener {
+            override fun onDataReceived(data: ByteArray?, message: String?) {
+                toast(message!!)
+                if (message == "1t") {
+                    TTSUtil.usingTTS(this@MainActivity, "1000원이 인식되었습니다.")
+                }else if(message == "5t"){
+                    TTSUtil.usingTTS(this@MainActivity, "5000원이 인식되었습니다.")
+                }else if(message == "1m"){
+
+                    TTSUtil.usingTTS(this@MainActivity, "10000원이 인식되었습니다.")
+                }else if(message == "5m"){
+                    TTSUtil.usingTTS(this@MainActivity, "50000원이 인식되었습니다.")
+                }
+                else {
+
+                    TTSUtil.usingTTS(this@MainActivity, message)
+                }
+            }
+        })
+
+        bt.setAutoConnectionListener(object : BluetoothSPP.AutoConnectionListener {
+            override fun onNewConnection(name: String, address: String) {
+                //새로운 연결일때
+                Log.e("new", "succes")
+            }
+
+
+            override fun onAutoConnectionStarted() {
+                //자동 연결
+                Log.e("auto", "succes")
+                toast("모듈과 정상적으로 연결되었습니다.")
+            }
+        })
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.e("반환", "1234")
-        if (requestCode == 10) {
-            if (resultCode == Activity.RESULT_OK) {
-                Log.e("asdf", "asdf")
-                blstart()
-                }
-            } else {
-                toast("블루투스를 연결해 주세요.")
-            }
-        }
 
 
     public override fun onStart() {
-        super.onStart()
-        if (!bt!!.isBluetoothEnabled) {
-            // Do somthing if bluetooth is disable
+        super.onStart();
+        if (!bt.isBluetoothEnabled()) {
+            bt.enable();
         } else {
-            // Do something if bluetooth is already enable
+            if (!bt.isServiceAvailable()) {
+                bt.setupService();
+                bt.startService(BluetoothState.DEVICE_OTHER)
+                bt!!.autoConnect("BLIENDS")
+            }
         }
     }
 
-    fun blstart(){
-        bt!!.setupService()
-        bt!!.startService(BluetoothState.DEVICE_OTHER)
-        bt!!.autoConnect("BLIENDS")
+    override fun onDestroy() {
+        super.onDestroy()
+        bt.stopService()
     }
+
+
 
     //권한 설정
     fun getPermission() {
@@ -132,3 +156,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+

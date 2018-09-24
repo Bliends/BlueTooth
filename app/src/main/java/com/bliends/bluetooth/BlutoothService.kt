@@ -12,6 +12,7 @@ import java.io.InputStream
 import java.net.URLEncoder
 
 
+
 class BlutoothService(activity: Activity, handler: Handler) {
     private val TAG: String = "BluetoothService"
 
@@ -61,13 +62,11 @@ class BlutoothService(activity: Activity, handler: Handler) {
     }
 
 
-    fun enableBluetooth() : String{
-        return if (adapter!!.isEnabled) {
-            "있음"
+    fun enableBluetooth() {
+        if (adapter!!.isEnabled) {
         } else {
             var intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             acitivity.startActivityForResult(intent, 10)
-            "없음"
         }
     }
 }
